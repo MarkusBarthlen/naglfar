@@ -42,7 +42,14 @@ pub fn download(url_str: &str) -> (String, PathBuf) {
             return parsed;
         } else if let Some(ref mut html_src_url) = *html_src_url {
             let mut url = Url::parse(html_src_url.as_str()).unwrap();
-            url.set_path(url_str);
+            let v: Vec<&str> = url_str.split("?").collect();
+            url.set_path(v.get(0).unwrap());
+            if v.len() > 1{
+              if let Some(s) = v.get(1){
+                 url.set_query(Some(s));       
+              }           
+            }
+            
             return url;
         }
         *html_src_url = Some(url_str.to_string());
@@ -98,7 +105,7 @@ static mut SRC_UPDATED: bool = false;
 pub fn update_html_source(html_src: String) {
     let (html_src_cache_name, html_src_path) = download(html_src.as_str());
 
-    debug_println!("HTML:");
+    //debug_println!("HTML:");
     let mut html_source = "".to_string();
     OpenOptions::new()
         .read(true)

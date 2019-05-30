@@ -6,19 +6,19 @@ authors = ["uint256_t <maekawatoshiki@github.com>"]
 [dependencies]
 app_units = "0.6.1"
 
-clap = "*"
+clap = "2.31.2"
 
-reqwest = "*"
+reqwest = "0.9.17"
 
-rand = "*"
+rand = "0.5.0"
 
-gtk= "*"
-gdk = "*"
-gdk-pixbuf = "*"
-cairo-rs = "*"
-pango = "*"
-pangocairo = "*"
-glib = "*"
+gtk= "0.4.1"
+gdk = "0.8.0"
+gdk-pixbuf = "0.4.0"
+cairo-rs = "0.4.1"
+pango = "0.4.0"
+pangocairo = "0.5.0"
+glib = "0.5.0"
 
 
 [profile.dev]
