@@ -46,7 +46,7 @@ pub fn download(url_str: &str) -> (String, PathBuf) {
             url.set_path(v.get(0).unwrap());
             if v.len() > 1{
               if let Some(s) = v.get(1){
-                 url.set_query(Some(s));       
+                 url.set_query(Some(s.replace("&amp;","&").as_str()));       
               }           
             }
             
