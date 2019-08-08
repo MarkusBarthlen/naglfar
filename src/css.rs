@@ -243,6 +243,11 @@ pub fn parse_value(source: String) -> Value {
     }
 }
 
+fn valid_ident_char_cheating(c: char) -> bool {
+    // TODO: other char codes?
+    c.is_alphanumeric() || c == '-' || c == '_' || c == ':' || c == '.' || c == '/' || c == '%'
+}
+
 fn valid_ident_char(c: char) -> bool {
     // TODO: other char codes?
     c.is_alphanumeric() || c == '-' || c == '_'
@@ -281,6 +286,24 @@ impl Parser {
         }
     }
 
+    fn consume_braces_pair(&mut self) {
+        //println!("Opening brace: {}",self.pos);
+        self.consume_while(|c| c != '{').unwrap();
+        assert_eq!(self.consume_char().unwrap(), '{');
+        loop {
+            self.consume_whitespace().unwrap();
+            if self.next_char().unwrap() == '{' {
+               self.consume_braces_pair(); 
+            }
+            if self.next_char().unwrap() == '}' {
+                //println!("Closing brace: {}",self.pos);
+                self.consume_char().unwrap();
+                break;
+            }
+            self.consume_char().unwrap();
+        }
+    }
+
     fn parse_rules(&mut self) -> Vec<Rule> {
         let mut rules = vec![];
         loop {
@@ -298,7 +321,9 @@ impl Parser {
                     self.consume_while(|c| c != ';').unwrap();
                     assert_eq!(self.consume_char().unwrap(), ';');
                 } else if ident == "font-face" || ident == "-ms-viewport" {
-                    self.consume_while(|c| c != '{').unwrap();
+                    //println!("We are at a @font-face query: {}",self.pos);
+                    self.consume_braces_pair();
+                    /* self.consume_while(|c| c != '{').unwrap();
                     assert_eq!(self.consume_char().unwrap(), '{');
                     loop {
                         self.consume_whitespace().unwrap();
@@ -307,10 +332,12 @@ impl Parser {
                             break;
                         }
                         self.parse_rule().unwrap();
-                    }
+                    } */
                 } else {
+                    //println!("We are at a @media query: {}",self.pos);
+                    self.consume_braces_pair();
                     // @support, @media...
-                    self.consume_while(|c| c != '{').unwrap();
+                    /* self.consume_while(|c| c != '{').unwrap();
                     assert_eq!(self.consume_char().unwrap(), '{');
                     loop {
                         self.consume_whitespace().unwrap();
@@ -319,9 +346,10 @@ impl Parser {
                             break;
                         }
                         self.parse_rule().unwrap();
-                    }
+                    } */
                 }
             } else {
+                //println!("Parsing rule: {}",self.pos);
                 if let Ok(ok) = self.parse_rule() {
                     rules.push(ok)
                 }
@@ -351,7 +379,7 @@ impl Parser {
                 }
                 '{' => break,
                 c => {
-                    println!("Unexpected character {} in selector list", c);
+                    //println!("Unexpected character {} in selector list", c);
                     // debug: panic!();
                     self.consume_char()?;
                 }
@@ -462,12 +490,15 @@ impl Parser {
                 self.consume_char()?;
                 break;
             }
+            //println!("About to parse declaration: {}",self.pos);
             declarations.push(self.parse_declaration()?);
+            //println!("Parsed declaration: {}",self.pos);
         }
         Ok(declarations)
     }
 
     fn parse_declaration(&mut self) -> Result<Declaration, ()> {
+        //background:no-repeat center/100% url("assets/logo_homepage.normal.v108.svg"),linear-gradient(transparent, transparent)
         let property_name = self.parse_identifier()?;
         self.consume_whitespace()?;
         assert_eq!(self.consume_char()?, ':');
@@ -521,10 +552,12 @@ impl Parser {
             '#' => self.parse_color(),
             '\"' | '\'' => self.parse_string(),
             _ => {
+                //no-repeat center/100% url("assets/logo_homepage.normal.v108.svg"),linear-gradient(transparent, transparent)
+                //progid:DXImageTransform.Microsoft.BasicImage(rotation=1)
                 self.skip_char_if_any('!')?; // TODO: Is this correct?
                 self.skip_char_if_any('\\')?; // TODO: Is this correct?
 
-                let ident = self.parse_identifier()?;
+                let ident = self.parse_identifier_cheating()?;
                 match ident.as_str() {
                     "rgb" => self.parse_rgb_color(),
                     "rgba" => self.parse_rgba_color(),
@@ -672,6 +705,10 @@ impl Parser {
     //     self.pos += 2;
     //     u8::from_str_radix(s, 16).unwrap()
     // }
+
+    fn parse_identifier_cheating(&mut self) -> Result<String, ()> {
+        Ok(self.consume_while(valid_ident_char_cheating)?.to_lowercase())
+    }
 
     fn parse_identifier(&mut self) -> Result<String, ()> {
         Ok(self.consume_while(valid_ident_char)?.to_lowercase())

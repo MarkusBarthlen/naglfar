@@ -38,6 +38,10 @@ Give the html file on the Internet:
 $ cargo run https://maekawatoshiki.github.io/naglfar/example/test.html
 ```
 
+```sh
+$ cargo run https://duckduckgo.com/lite/?q=test
+```
+
 # Reference
 
 Great thanks to [robinson](https://github.com/mbrubeck/robinson)
