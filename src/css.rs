@@ -287,7 +287,6 @@ impl Parser {
     }
 
     fn consume_braces_pair(&mut self) {
-        //println!("Opening brace: {}",self.pos);
         self.consume_while(|c| c != '{').unwrap();
         assert_eq!(self.consume_char().unwrap(), '{');
         loop {
@@ -296,7 +295,6 @@ impl Parser {
                self.consume_braces_pair(); 
             }
             if self.next_char().unwrap() == '}' {
-                //println!("Closing brace: {}",self.pos);
                 self.consume_char().unwrap();
                 break;
             }
